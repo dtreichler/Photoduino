@@ -22,8 +22,6 @@
   // Run shock trigger mode
 void runAs_shockTrigger() { 
 
-   boolean exit = false;
-    
    display_printTitle(MSG_RUN_SHOCK);
    
    keyboard_waitForNokey();
@@ -31,26 +29,12 @@ void runAs_shockTrigger() {
    attachInterrupt(0, keyboard_interrupts, CHANGE);
    attachInterrupt(1, keyboard_interrupts, CHANGE);
    
-   for(unsigned int ciclesCounter = 0; (cancelFlag==false && exit==false && !(shockTriggerMode_numCicles>0 && ciclesCounter >= shockTriggerMode_numCicles)) ;ciclesCounter++) { 
+   for(unsigned int ciclesCounter = 0; (cancelFlag==false && !(shockTriggerMode_numCicles>0 && ciclesCounter >= shockTriggerMode_numCicles)) ;ciclesCounter++) { 
      
-     if (shockTriggerMode_preBulbMode) {
-      
-       // With prebulb
-       camera_autofocusBegin(shockTriggerMode_autofocusTime);
-       camera_shutterBegin(shockTriggerMode_shutterLagTime); 
+     // Normal shooting mode
+     if (shockTriggerMode_shootingMode == SHOOTINGMODE_NORMAL) {
        
-       sensor_waitFor(PINS_SENSOR_SHOCK, SENSOR_MODE_HIGHER, shockTriggerMode_sensorLimit);
-               
-       if(!cancelFlag) {
- 
-         if (shockTriggerMode_useFlash1) flash_shoot(shockTriggerMode_preFlash1Time, PINS_FLASH1);
-         if (shockTriggerMode_useFlash2) flash_shoot(shockTriggerMode_preFlash2Time, PINS_FLASH2); 
-       }
-          
-     } else {
-       
-       // Without brebulb
-       sensor_waitFor(PINS_SENSOR_SHOCK, SENSOR_MODE_HIGHER, shockTriggerMode_sensorLimit);
+       sensor_waitFor(PINS_SENSOR_SHOCK, SENSOR_MODE_HIGHER, shockTriggerMode_sensorLimit, 0);
        
        if(!cancelFlag) {
 
@@ -60,10 +44,43 @@ void runAs_shockTrigger() {
          if (shockTriggerMode_useFlash1) flash_shoot(shockTriggerMode_preFlash1Time, PINS_FLASH1);
          if (shockTriggerMode_useFlash2) flash_shoot(shockTriggerMode_preFlash2Time, PINS_FLASH2); 
        }
+     } 
+     
+     // Prebulb shooting mode
+     if (shockTriggerMode_shootingMode == SHOOTINGMODE_PREBULB) {
+      
+       camera_autofocusBegin(shockTriggerMode_autofocusTime);
+       camera_shutterBegin(shockTriggerMode_shutterLagTime); 
+       
+       sensor_waitFor(PINS_SENSOR_SHOCK, SENSOR_MODE_HIGHER, shockTriggerMode_sensorLimit, 0);
+               
+       if(!cancelFlag) {
+ 
+         if (shockTriggerMode_useFlash1) flash_shoot(shockTriggerMode_preFlash1Time, PINS_FLASH1);
+         if (shockTriggerMode_useFlash2) flash_shoot(shockTriggerMode_preFlash2Time, PINS_FLASH2); 
+       }        
+     }  
+     
+     // Mirror lock-up shooting mode
+     if (shockTriggerMode_shootingMode == SHOOTINGMODE_MIRRORLOCKUP) {
+              
+       for(boolean result = false; result == false;  ){      
+         camera_mirrorLockUp(shockTriggerMode_autofocusTime, shockTriggerMode_shutterLagTime);
+         result = sensor_waitFor(PINS_SENSOR_SHOCK, SENSOR_MODE_HIGHER, shockTriggerMode_sensorLimit, DEVICES_CAMERA_MIRROR_LOCKUP_TIMELIMIT);
+       }
+       camera_shutterBegin(1); 
+      
+       if(!cancelFlag) {
+         
+         if (shockTriggerMode_useFlash1) flash_shoot(shockTriggerMode_preFlash1Time, PINS_FLASH1);
+         if (shockTriggerMode_useFlash2) flash_shoot(shockTriggerMode_preFlash2Time, PINS_FLASH2); 
+       }          
      }
+    
+     // Common for all shooting modes
      camera_shutterEnd(shockTriggerMode_preCloseTime); 
      camera_autofocusEnd();
-     delay(shockTriggerMode_interCicleTime);       
+     if(!cancelFlag) delay(shockTriggerMode_interCicleTime);       
    }
      
    display_printAborting();

@@ -23,7 +23,7 @@
 void flash_shoot(unsigned int previousDelay, byte pin) {
     delay(previousDelay);
     digitalWrite(pin,HIGH); 
-    delayMicroseconds(1);
+    delayMicroseconds(DEVICES_FLASHES_SHOOTING_PULSE);
     digitalWrite(pin,LOW);
  }
 
@@ -50,6 +50,17 @@ void camera_autofocusEnd(){
     digitalWrite(PINS_AUTOFOCUS,LOW);
 }
 
+// Look-up the mirror 
+void camera_mirrorLockUp(unsigned int autofocusTime, unsigned int shutterLag){
+    
+    digitalWrite(PINS_AUTOFOCUS,HIGH); 
+    delay(autofocusTime);  
+    digitalWrite(PINS_SHUTTER,HIGH); 
+    delay(shutterLag);
+    digitalWrite(PINS_SHUTTER,LOW); 
+    digitalWrite(PINS_AUTOFOCUS,LOW);
+}
+
 // Turns the laser ON
 void laser_turnOn(){
    digitalWrite(PINS_LASER,HIGH);
@@ -62,27 +73,32 @@ void laser_turnOff(){
 }
 
 // Reads the value of a sensor
-byte sensor_read(byte sensorPin) {
+unsigned int sensor_read(byte sensorPin) {
   
-  byte value = analogRead(sensorPin)>>6;
-  
+  unsigned int value = analogRead(sensorPin);
+  if (value>999) value = 999;
+ 
   if (sensorPin == PINS_SENSOR_MIC) {
-    if (value > 7) value = (value-7)*2;
-    else value = (7-value)*2;
-  }
+    if (value > 500) value = (value-500)*2;
+    else value = (500-value)*2;
+  } 
   
   return value;
 }
 
 // Waits for sensor cross the limit
-void sensor_waitFor(byte pin, byte mode, unsigned int limit){
-     
-  byte sensorValue = sensor_read(pin);
+boolean sensor_waitFor(byte pin, byte mode, unsigned int limitValue, unsigned int limitTime){
+  
+  unsigned long time = millis();
+  unsigned int sensorValue = sensor_read(pin);
+  boolean result = false;
 
-  for(boolean result = false; !result && !cancelFlag; sensorValue = sensor_read(pin)) {
-    if (mode==SENSOR_MODE_HIGHER && sensorValue>=limit) result = true;
-    if (mode==SENSOR_MODE_LOWER && sensorValue<=limit) result = true;
+  for(; !result && !cancelFlag && (millis()<time+limitTime || limitTime==0); sensorValue = sensor_read(pin)) {
+    if (mode==SENSOR_MODE_HIGHER && sensorValue>=limitValue) result = true;
+    if (mode==SENSOR_MODE_LOWER && sensorValue<=limitValue) result = true;
   }
+  if(cancelFlag) result = true;
+  return result;
 }
 
 // Called in interrupt mode when any button is pressed
@@ -91,17 +107,21 @@ void keyboard_interrupts(){
   else cancelFlag = true;
 }
 
-// Scans keyboard buttons
 void keyboard_scan() { 
+   keyboard_scan(false);
+}
 
-  unsigned long time = millis();
-  lastKey = NO_KEY;
+// Scans keyboard buttons
+void keyboard_scan(boolean quickmode) { 
+
+  unsigned long time = millis();  
   
-  if (flagHoldKey) { 
+  
+  if (flagHoldKey && !quickmode) { 
       buzzer_beep(100);
       while(digitalRead(PINS_BTN_A) || digitalRead(PINS_BTN_B)) {}
-      flagHoldKey = false; 
-      delay(100);
+      flagHoldKey = false;
+      lastKey = NO_KEY; 
       
   } else if (digitalRead(PINS_BTN_A)) {
      while(digitalRead(PINS_BTN_A) && (millis()-time) <= KEY_HOLD_TIME){  
@@ -114,7 +134,10 @@ void keyboard_scan() {
         if (millis()-time >= KEY_DEBOUNCE_TIME) lastKey = KEY_B;  
         if (millis()-time >= KEY_HOLD_TIME) { lastKey = KEY_BH; flagHoldKey = true; }
      }    
-  } 
+  } else {
+    flagHoldKey = false;
+    lastKey = NO_KEY;
+  }
   
 }
 
@@ -192,6 +215,31 @@ void display_printUnits(byte units){
   lcd.print(")");
 }
 
+// Print units value
+void display_printShootingModes(byte mode){
+  lcd.print("(");
+  if(mode==SHOOTINGMODE_NORMAL) lcd.print(MSG_SHOOTINGMODE_NORMAL);
+  if(mode==SHOOTINGMODE_PREBULB) lcd.print(MSG_SHOOTINGMODE_PREBULB);     
+  if(mode==SHOOTINGMODE_MIRRORLOCKUP) lcd.print(MSG_SHOOTINGMODE_MIRRORLOCKUP);
+  lcd.print(")");
+}
 
+// Print interface sensor modes
+void display_printInterfaceSensorModes(byte mode){
+  lcd.print("(");
+  if(mode==SENSORLIMIT_VISUAL) lcd.print(MSG_VISUAL_MODE);
+  if(mode==SENSORLIMIT_NUMERIC) lcd.print(MSG_NUMERIC_MODE);     
+  lcd.print(")");
+}
 
+// Print a number of any positions with leading zeros.
+void display_leadingZeroNumber(unsigned int number, byte positions){
+  
+     if(positions>4) lcd.print(number/10000,10);
+     if(positions>3) lcd.print((number%10000)/1000, 10);
+     if(positions>2) lcd.print((number%1000)/100, 10);
+     if(positions>1) lcd.print((number%100)/10, 10);
+     lcd.print((number%10), 10);
+  
+}
 

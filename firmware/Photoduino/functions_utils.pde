@@ -34,14 +34,48 @@ unsigned int eeprom_readInt(int address){
   return EEPROM.read(address)*256+EEPROM.read(address+1);
 }
 
+/*
 // increment the value of a variable using minimun and maximun limits
 void circularList_increment(byte *value, byte minimun, byte maximun) {
+  
   if (*value == maximun) *value = minimun; 
   else *value = *value+1;
 }
 
 // decrement the value of a variable using minimun and maximun limits
 void circularList_decrement(byte *value, byte minimun, byte maximun) {
+  
    if (*value == minimun) *value = maximun;
    else  *value = *value-1;
 }
+*/
+// increment the value of a variable using minimun and maximun limits
+void circularList_incrementBy(byte *value, byte minimun, byte maximun, byte incrementBy) {
+  
+  if (*value+incrementBy > maximun) *value = minimun; 
+  else *value = *value+incrementBy;
+}
+
+// decrement the value of a variable using minimun and maximun limits
+void circularList_decrementBy(byte *value, byte minimun, byte maximun, byte decrementBy) {
+   
+   if ((*value < minimun) || (*value < decrementBy)) *value = maximun;
+   else *value = *value-decrementBy;
+}
+
+// increment the value of a variable using minimun and maximun limits
+void circularList_incrementBy(unsigned int *value, unsigned int minimun, unsigned int maximun, byte incrementBy) {
+  
+  if (*value+incrementBy > maximun) *value = minimun; 
+  else *value = *value+incrementBy;
+}
+
+// decrement the value of a variable using minimun and maximun limits
+void circularList_decrementBy(unsigned int *value, unsigned int minimun, unsigned int maximun, byte decrementBy) {
+   
+   if ((*value < minimun) || (*value < decrementBy)) *value = maximun;
+   else *value = *value-decrementBy;
+}
+
+
+

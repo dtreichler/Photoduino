@@ -20,9 +20,7 @@
  */
   
  // Run audio trigger mode
-void runAs_audioTrigger() { 
-     
-   boolean exit = false;
+void runAs_audioTrigger() {    
     
    display_printTitle(MSG_RUN_AUDIO);
    
@@ -31,25 +29,12 @@ void runAs_audioTrigger() {
    attachInterrupt(0, keyboard_interrupts, CHANGE);
    attachInterrupt(1, keyboard_interrupts, CHANGE);
    
-   for(unsigned int ciclesCounter = 0; (cancelFlag==false && exit==false && !(audioTriggerMode_numCicles>0 && ciclesCounter >= audioTriggerMode_numCicles));ciclesCounter++) { 
+   for(unsigned int ciclesCounter = 0; (cancelFlag==false && !(audioTriggerMode_numCicles>0 && ciclesCounter >= audioTriggerMode_numCicles));ciclesCounter++) { 
      
-     if (audioTriggerMode_preBulbMode) {
-      
-       // With prebulb
-       camera_autofocusBegin(audioTriggerMode_autofocusTime);
-       camera_shutterBegin(audioTriggerMode_shutterLagTime); 
+     // Normal shooting mode
+     if (audioTriggerMode_shootingMode == SHOOTINGMODE_NORMAL) {
        
-       sensor_waitFor(PINS_SENSOR_MIC, SENSOR_MODE_HIGHER, audioTriggerMode_sensorLimit);
-       
-       if(!cancelFlag) {
-         if (audioTriggerMode_useFlash1) flash_shoot(audioTriggerMode_preFlash1Time, PINS_FLASH1);
-         if (audioTriggerMode_useFlash2) flash_shoot(audioTriggerMode_preFlash2Time, PINS_FLASH2);     
-       }
-           
-     } else {
-       
-       // Without brebulb
-       sensor_waitFor(PINS_SENSOR_MIC, SENSOR_MODE_HIGHER, audioTriggerMode_sensorLimit);
+       sensor_waitFor(PINS_SENSOR_MIC, SENSOR_MODE_HIGHER, audioTriggerMode_sensorLimit, 0);
        
        if(!cancelFlag) {
          
@@ -60,10 +45,44 @@ void runAs_audioTrigger() {
          if (audioTriggerMode_useFlash2) flash_shoot(audioTriggerMode_preFlash2Time, PINS_FLASH2); 
 
        }
-     }   
+     }  
+     
+     // Prebulb shooting mode
+     if (audioTriggerMode_shootingMode == SHOOTINGMODE_PREBULB) {
+      
+       // With prebulb
+       camera_autofocusBegin(audioTriggerMode_autofocusTime);
+       camera_shutterBegin(audioTriggerMode_shutterLagTime); 
+       
+       sensor_waitFor(PINS_SENSOR_MIC, SENSOR_MODE_HIGHER, audioTriggerMode_sensorLimit, 0);
+       
+       if(!cancelFlag) {
+         if (audioTriggerMode_useFlash1) flash_shoot(audioTriggerMode_preFlash1Time, PINS_FLASH1);
+         if (audioTriggerMode_useFlash2) flash_shoot(audioTriggerMode_preFlash2Time, PINS_FLASH2);     
+       }          
+     }  
+     
+      // Mirror lock-up shooting mode
+     if (audioTriggerMode_shootingMode == SHOOTINGMODE_MIRRORLOCKUP) {
+              
+       for(boolean result = false; result == false;  ){      
+         camera_mirrorLockUp(audioTriggerMode_autofocusTime, audioTriggerMode_shutterLagTime);
+         result = sensor_waitFor(PINS_SENSOR_MIC, SENSOR_MODE_HIGHER, audioTriggerMode_sensorLimit, DEVICES_CAMERA_MIRROR_LOCKUP_TIMELIMIT);
+       }
+       camera_shutterBegin(1); 
+      
+       if(!cancelFlag) {
+         
+         if (audioTriggerMode_useFlash1) flash_shoot(audioTriggerMode_preFlash1Time, PINS_FLASH1);
+         if (audioTriggerMode_useFlash2) flash_shoot(audioTriggerMode_preFlash2Time, PINS_FLASH2); 
+       }          
+     }
+    
+     // Common for all shooting modes
      camera_shutterEnd(audioTriggerMode_preCloseTime); 
-     camera_autofocusEnd();  
-     delay(audioTriggerMode_interCicleTime);
+     camera_autofocusEnd();
+     if(!cancelFlag) delay(audioTriggerMode_interCicleTime);
+
    } 
      
    display_printAborting();

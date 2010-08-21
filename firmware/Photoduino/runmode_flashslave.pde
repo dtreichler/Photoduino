@@ -21,9 +21,7 @@
   
  // Run audio trigger mode
 void runAs_flashSlave() { 
-     
-   boolean exit = false;
-    
+       
    display_printTitle(MSG_RUN_FLASH_SLAVE);
    
    keyboard_waitForNokey();
@@ -31,10 +29,9 @@ void runAs_flashSlave() {
    attachInterrupt(0, keyboard_interrupts, CHANGE);
    attachInterrupt(1, keyboard_interrupts, CHANGE);
    
-   for(;(cancelFlag==false && exit==false);) { 
-     
-
-       sensor_waitFor(PINS_SENSOR_BARRIER, SENSOR_MODE_HIGHER, flashSlave_sensorLimit);
+   for(;(cancelFlag==false);) { 
+  
+       sensor_waitFor(PINS_SENSOR_BARRIER, SENSOR_MODE_HIGHER, flashSlave_sensorLimit, 0);
        if (flashSlave_useFlash1) flash_shoot(flashSlave_preFlash1Time, PINS_FLASH1);
        if (flashSlave_useFlash2) flash_shoot(flashSlave_preFlash2Time, PINS_FLASH2); 
    } 

@@ -22,8 +22,6 @@
  // Run interval mode
 void runAs_interval() { 
    
-   boolean exit = false;
-   
    display_printTitle(MSG_RUN_INTERVAL);
 
    keyboard_waitForNokey();
@@ -31,7 +29,7 @@ void runAs_interval() {
    attachInterrupt(0, keyboard_interrupts, CHANGE);
    attachInterrupt(1, keyboard_interrupts, CHANGE);
    
-   for(unsigned int ciclesCounter = 0; (cancelFlag==false && exit==false && !(intervalMode_numCicles>0 && ciclesCounter >= intervalMode_numCicles));ciclesCounter++) { 
+   for(unsigned int ciclesCounter = 0; (cancelFlag==false && !(intervalMode_numCicles>0 && ciclesCounter >= intervalMode_numCicles));ciclesCounter++) { 
      
      camera_autofocusBegin(intervalMode_autofocusTime); 
      camera_shutterBegin(intervalMode_shutterLagTime); 

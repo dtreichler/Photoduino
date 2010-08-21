@@ -21,7 +21,7 @@
 
 void config_init(){
   
-  // Chacks if the firmware version is the same of eeprom config
+  // Check if the firmware version is the same of eeprom config
   if (
       EEPROM.read(EE_ADDR_SIGNATURE_CODE1) == SIGNATURE_CODE1 && 
       EEPROM.read(EE_ADDR_SIGNATURE_CODE2) == SIGNATURE_CODE2 && 
@@ -34,7 +34,7 @@ void config_init(){
        config_loadBackup_all();
      
    } else {
-      // clears the eeprom
+      // clear the eeprom
       for (int i = 0; i < EEPROM_SIZE; i++)  EEPROM.write(i, 0xFF);
       
       // writes sign codes
@@ -45,7 +45,7 @@ void config_init(){
       EEPROM.write(EE_ADDR_CODE_MAYOR_VERSION,CODE_MAYOR_VERSION);
       EEPROM.write(EE_ADDR_CODE_MINOR_VERSION,CODE_MINOR_VERSION);
       
-      // loads defaults in ram and save it on eeprom
+      // load defaults in ram and save it on eeprom
       config_loadDefaults_all();
       config_saveBackup_all();
       
@@ -88,6 +88,7 @@ void config_loadBackup_system(){
   
   system_useBacklight = EEPROM.read(EE_ADDR_system_useBacklight);
   system_useSpeaker = EEPROM.read(EE_ADDR_system_useSpeaker);
+  system_interfaceSensorLimit = EEPROM.read(EE_ADDR_system_interfaceSensorLimit);
 }
 
 // Load the default system config to ram
@@ -95,6 +96,7 @@ void config_loadDefaults_system() {
   
   system_useBacklight = DEFAULT_system_useBacklight;
   system_useSpeaker = DEFAULT_system_useSpeaker;
+  system_interfaceSensorLimit = DEFAULT_system_interfaceSensorLimit;
 }
 
 // Save the system config from ram to eeprom
@@ -102,6 +104,7 @@ void config_saveBackup_system(){
   
   EEPROM.write(EE_ADDR_system_useBacklight, system_useBacklight);
   EEPROM.write(EE_ADDR_system_useSpeaker, system_useSpeaker);
+  EEPROM.write(EE_ADDR_system_interfaceSensorLimit, system_interfaceSensorLimit);
 
 }
 
@@ -156,8 +159,8 @@ void config_loadBackup_intervalMode(){
 // Load the audioTriggerMode from eeprom to ram
 void config_loadBackup_audioTriggerMode(){   
   
-  audioTriggerMode_preBulbMode = EEPROM.read(EE_ADDR_audioTriggerMode_preBulbMode);
-  audioTriggerMode_sensorLimit = EEPROM.read(EE_ADDR_audioTriggerMode_sensorLimit);
+  audioTriggerMode_shootingMode = EEPROM.read(EE_ADDR_audioTriggerMode_shootingMode);
+  audioTriggerMode_sensorLimit = eeprom_readInt(EE_ADDR_audioTriggerMode_sensorLimit);
   audioTriggerMode_autofocusTime = eeprom_readInt(EE_ADDR_audioTriggerMode_autofocusTime);
   audioTriggerMode_shutterLagTime = eeprom_readInt(EE_ADDR_audioTriggerMode_shutterLagTime);
   audioTriggerMode_preCloseTime = eeprom_readInt(EE_ADDR_audioTriggerMode_preCloseTime);
@@ -172,7 +175,7 @@ void config_loadBackup_audioTriggerMode(){
 // Load the default audioTriggerMode config to ram
 void config_loadDefaults_audioTriggerMode() {
   
-  audioTriggerMode_preBulbMode =      DEFAULT_audioTriggerMode_preBulbMode;
+  audioTriggerMode_shootingMode =     DEFAULT_audioTriggerMode_shootingMode;
   audioTriggerMode_sensorLimit =      DEFAULT_audioTriggerMode_sensorLimit;
   audioTriggerMode_autofocusTime =    DEFAULT_audioTriggerMode_autofocusTime;
   audioTriggerMode_shutterLagTime =   DEFAULT_audioTriggerMode_shutterLagTime;
@@ -188,8 +191,8 @@ void config_loadDefaults_audioTriggerMode() {
 // Save the audioTriggerMode from ram to eeprom
 void config_saveBackup_audioTriggerMode(){ 
   
-  EEPROM.write(EE_ADDR_audioTriggerMode_preBulbMode, audioTriggerMode_preBulbMode);
-  EEPROM.write(EE_ADDR_audioTriggerMode_sensorLimit, audioTriggerMode_sensorLimit);
+  EEPROM.write(EE_ADDR_audioTriggerMode_shootingMode, audioTriggerMode_shootingMode);
+  eeprom_writeInt(EE_ADDR_audioTriggerMode_sensorLimit, audioTriggerMode_sensorLimit);
   eeprom_writeInt(EE_ADDR_audioTriggerMode_autofocusTime, audioTriggerMode_autofocusTime);
   eeprom_writeInt(EE_ADDR_audioTriggerMode_shutterLagTime, audioTriggerMode_shutterLagTime);
   eeprom_writeInt(EE_ADDR_audioTriggerMode_preCloseTime, audioTriggerMode_preCloseTime);
@@ -204,8 +207,8 @@ void config_saveBackup_audioTriggerMode(){
 // Load the shockTriggerMode from eeprom to ram
 void config_loadBackup_shockTriggerMode(){   
   
-  shockTriggerMode_preBulbMode = EEPROM.read(EE_ADDR_shockTriggerMode_preBulbMode);
-  shockTriggerMode_sensorLimit = EEPROM.read(EE_ADDR_shockTriggerMode_sensorLimit);
+  shockTriggerMode_shootingMode = EEPROM.read(EE_ADDR_shockTriggerMode_shootingMode);
+  shockTriggerMode_sensorLimit = eeprom_readInt(EE_ADDR_shockTriggerMode_sensorLimit);
   shockTriggerMode_autofocusTime = eeprom_readInt(EE_ADDR_shockTriggerMode_autofocusTime);
   shockTriggerMode_shutterLagTime = eeprom_readInt(EE_ADDR_shockTriggerMode_shutterLagTime);
   shockTriggerMode_preCloseTime = eeprom_readInt(EE_ADDR_shockTriggerMode_preCloseTime);
@@ -220,7 +223,7 @@ void config_loadBackup_shockTriggerMode(){
 // Load the default shockTriggerMode config to ram
 void config_loadDefaults_shockTriggerMode() {
   
-  shockTriggerMode_preBulbMode =      DEFAULT_shockTriggerMode_preBulbMode;
+  shockTriggerMode_shootingMode =     DEFAULT_shockTriggerMode_shootingMode;
   shockTriggerMode_sensorLimit =      DEFAULT_shockTriggerMode_sensorLimit;
   shockTriggerMode_autofocusTime =    DEFAULT_shockTriggerMode_autofocusTime;
   shockTriggerMode_shutterLagTime =   DEFAULT_shockTriggerMode_shutterLagTime;
@@ -237,8 +240,8 @@ void config_loadDefaults_shockTriggerMode() {
 // Save the shockTriggerMode from ram to eeprom
 void config_saveBackup_shockTriggerMode(){ 
   
-  EEPROM.write(EE_ADDR_shockTriggerMode_preBulbMode, shockTriggerMode_preBulbMode);
-  EEPROM.write(EE_ADDR_shockTriggerMode_sensorLimit, shockTriggerMode_sensorLimit);
+  EEPROM.write(EE_ADDR_shockTriggerMode_shootingMode, shockTriggerMode_shootingMode);
+  eeprom_writeInt(EE_ADDR_shockTriggerMode_sensorLimit, shockTriggerMode_sensorLimit);
   eeprom_writeInt(EE_ADDR_shockTriggerMode_autofocusTime, shockTriggerMode_autofocusTime);
   eeprom_writeInt(EE_ADDR_shockTriggerMode_shutterLagTime, shockTriggerMode_shutterLagTime);
   eeprom_writeInt(EE_ADDR_shockTriggerMode_preCloseTime, shockTriggerMode_preCloseTime);
@@ -254,8 +257,8 @@ void config_saveBackup_shockTriggerMode(){
 // Load the barrierMode from eeprom to ram
 void config_loadBackup_barrierMode(){   
   
-  barrierMode_preBulbMode = EEPROM.read(EE_ADDR_barrierMode_preBulbMode);
-  barrierMode_sensorLimit = EEPROM.read(EE_ADDR_barrierMode_sensorLimit);
+  barrierMode_shootingMode = EEPROM.read(EE_ADDR_barrierMode_shootingMode);
+  barrierMode_sensorLimit = eeprom_readInt(EE_ADDR_barrierMode_sensorLimit);
   barrierMode_autofocusTime = eeprom_readInt(EE_ADDR_barrierMode_autofocusTime);
   barrierMode_shutterLagTime = eeprom_readInt(EE_ADDR_barrierMode_shutterLagTime);
   barrierMode_preCloseTime = eeprom_readInt(EE_ADDR_barrierMode_preCloseTime);
@@ -270,7 +273,7 @@ void config_loadBackup_barrierMode(){
 // Load the default barrierMode config to ram
 void config_loadDefaults_barrierMode() {
   
-  barrierMode_preBulbMode =      DEFAULT_barrierMode_preBulbMode;
+  barrierMode_shootingMode =     DEFAULT_barrierMode_shootingMode;
   barrierMode_sensorLimit =      DEFAULT_barrierMode_sensorLimit;
   barrierMode_autofocusTime =    DEFAULT_barrierMode_autofocusTime;
   barrierMode_shutterLagTime =   DEFAULT_barrierMode_shutterLagTime;
@@ -286,8 +289,8 @@ void config_loadDefaults_barrierMode() {
 // Save the barrierModee config from ram to eeprom
 void config_saveBackup_barrierMode(){ 
   
-  EEPROM.write(EE_ADDR_barrierMode_preBulbMode, barrierMode_preBulbMode);
-  EEPROM.write(EE_ADDR_barrierMode_sensorLimit, barrierMode_sensorLimit);
+  EEPROM.write(EE_ADDR_barrierMode_shootingMode, barrierMode_shootingMode);
+  eeprom_writeInt(EE_ADDR_barrierMode_sensorLimit, barrierMode_sensorLimit);
   eeprom_writeInt(EE_ADDR_barrierMode_autofocusTime, barrierMode_autofocusTime);
   eeprom_writeInt(EE_ADDR_barrierMode_shutterLagTime, barrierMode_shutterLagTime);
   eeprom_writeInt(EE_ADDR_barrierMode_preCloseTime, barrierMode_preCloseTime);
@@ -314,7 +317,7 @@ void config_loadDefaults_flashSlave() {
 // Save the flash slave config to eeprom
 void config_saveBackup_flashSlave(){
   
-  EEPROM.write(EE_ADDR_flashSlave_sensorLimit, flashSlave_sensorLimit);
+  eeprom_writeInt(EE_ADDR_flashSlave_sensorLimit, flashSlave_sensorLimit);
   EEPROM.write(EE_ADDR_flashSlave_useFlash1, flashSlave_useFlash1);
   eeprom_writeInt(EE_ADDR_flashSlave_preFlash1Time, flashSlave_preFlash1Time);
   EEPROM.write(EE_ADDR_flashSlave_useFlash2, flashSlave_useFlash2);
@@ -325,7 +328,7 @@ void config_saveBackup_flashSlave(){
 // Load the flash slave config from eeprom to ram
 void config_loadBackup_flashSlave(){  
   
-  flashSlave_sensorLimit = EEPROM.read(EE_ADDR_flashSlave_sensorLimit);
+  flashSlave_sensorLimit = eeprom_readInt(EE_ADDR_flashSlave_sensorLimit);
   flashSlave_useFlash1 = EEPROM.read(EE_ADDR_flashSlave_useFlash1);
   flashSlave_preFlash1Time = eeprom_readInt(EE_ADDR_flashSlave_preFlash1Time);
   flashSlave_useFlash2 = EEPROM.read(EE_ADDR_flashSlave_useFlash2);
